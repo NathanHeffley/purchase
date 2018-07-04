@@ -14,18 +14,27 @@ class PurchaseProductTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @var PaymentGateway
+     */
+    protected $paymentGateway;
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        Mail::fake();
+        $this->paymentGateway = new FakePaymentGateway;
+        $this->app->instance(PaymentGateway::class, $this->paymentGateway);
+    }
     /** @test */
     public function customer_can_purchase_a_product()
     {
         $this->withoutExceptionHandling();
 
-        Mail::fake();
-        $paymentGateway = new FakePaymentGateway;
-        $this->app->instance(PaymentGateway::class, $paymentGateway);
-
         $product = factory(Product::class)->create(['price' => 2450]);
 
-        $testToken = $paymentGateway->getValidTestToken();
+        $testToken = $this->paymentGateway->getValidTestToken();
 
         $response = $this->json('POST', "/products/{$product->id}/orders", [
             'email' => 'john@example.com',
@@ -34,7 +43,7 @@ class PurchaseProductTest extends TestCase
 
         $response->assertStatus(201);
 
-        $this->assertEquals(2450, $paymentGateway->totalChargesForToken($testToken));
+        $this->assertEquals(2450, $this->paymentGateway->totalChargesForToken($testToken));
 
         Mail::assertSent(ProductEmail::class, function ($email) use ($product) {
             $this->assertTrue($email->hasTo('john@example.com'));
@@ -46,10 +55,6 @@ class PurchaseProductTest extends TestCase
     /** @test */
     public function email_is_not_sent_if_payment_fails()
     {
-        Mail::fake();
-        $paymentGateway = new FakePaymentGateway;
-        $this->app->instance(PaymentGateway::class, $paymentGateway);
-
         $product = factory(Product::class)->create(['price' => 2450]);
 
         $response = $this->json('POST', "/products/{$product->id}/orders", [
