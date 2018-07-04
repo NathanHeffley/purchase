@@ -3,6 +3,7 @@
 namespace App\Payments;
 
 use Illuminate\Support\Collection;
+use App\Exceptions\PaymentFailedException;
 
 class FakePaymentGateway implements PaymentGateway
 {
@@ -11,9 +12,15 @@ class FakePaymentGateway implements PaymentGateway
      */
     protected $charges;
 
+    /**
+     * @var Collection
+     */
+    protected $validTokens;
+
     public function __construct()
     {
         $this->charges = collect();
+        $this->validTokens = collect();
     }
 
     /**
@@ -25,6 +32,10 @@ class FakePaymentGateway implements PaymentGateway
      */
     public function charge(int $amount, string $token): void
     {
+        if (!$this->validTokens->contains($token)) {
+            throw new PaymentFailedException;
+        }
+
         $this->charges->push([
             'amount' => $amount,
             'token' => $token,
@@ -38,7 +49,9 @@ class FakePaymentGateway implements PaymentGateway
      */
     public function getValidTestToken(): string
     {
-        return 'valid_test_token';
+        $token = 'test_token_' . str_random();
+        $this->validTokens->push($token);
+        return $token;
     }
 
     /**

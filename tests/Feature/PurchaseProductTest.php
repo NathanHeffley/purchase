@@ -23,9 +23,7 @@ class PurchaseProductTest extends TestCase
         $paymentGateway = new FakePaymentGateway;
         $this->app->instance(PaymentGateway::class, $paymentGateway);
 
-        $product = factory(Product::class)->create([
-            'price' => 2450,
-        ]);
+        $product = factory(Product::class)->create(['price' => 2450]);
 
         $testToken = $paymentGateway->getValidTestToken();
 
@@ -43,5 +41,23 @@ class PurchaseProductTest extends TestCase
             $this->assertTrue($email->product->is($product));
             return true;
         });
+    }
+
+    /** @test */
+    public function email_is_not_sent_if_payment_fails()
+    {
+        Mail::fake();
+        $paymentGateway = new FakePaymentGateway;
+        $this->app->instance(PaymentGateway::class, $paymentGateway);
+
+        $product = factory(Product::class)->create(['price' => 2450]);
+
+        $response = $this->json('POST', "/products/{$product->id}/orders", [
+            'email' => 'john@example.com',
+            'token' => 'invalid_token',
+        ]);
+
+        $response->assertStatus(422);
+        Mail::assertNothingSent();
     }
 }

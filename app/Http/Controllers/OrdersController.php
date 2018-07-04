@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\PaymentFailedException;
 use App\Product;
 use App\Mail\ProductEmail;
 use App\Payments\PaymentGateway;
@@ -21,7 +22,11 @@ class OrdersController extends Controller
 
     public function store(Product $product)
     {
-        $this->paymentGateway->charge($product->price, request('token'));
+        try {
+            $this->paymentGateway->charge($product->price, request('token'));
+        } catch (PaymentFailedException $e) {
+            return response()->json([], 422);
+        }
 
         Mail::to(request('email'))->send(new ProductEmail($product));
 
