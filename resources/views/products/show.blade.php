@@ -1,5 +1,24 @@
-<p>{{ $product->name }}</p>
+@extends('layouts.app')
 
-<p>{{ $product->description }}</p>
+@section('title', $product->name)
 
-<p>${{ number_format($product->price / 100, 2) }}</p>
+@section('body')
+    <div class="bg-white max-w-sm mx-auto rounded overflow-hidden shadow mt-12">
+        <div class="px-6 py-4">
+            <h1 class="font-medium mb-2">{{ $product->name }}</h1>
+            <p class="font-medium leading-normal text-lg text-grey-darker">{{ $product->description }}</p>
+        </div>
+        <div class="px-6 py-4 flex">
+            <div class="mr-6">
+                <label class="text-grey-dark">Price</label>
+                <span class="text-2xl block mt-1">${{ number_format($product->price / 100, 2) }}</span>
+            </div>
+            <div class="flex-grow">
+                <button class="btn">Purchase</button>
+            </div>
+        </div>
+    </div>
+    <div class="text-center text-grey-dark mt-8">
+        <p>Powered by Purchase</p>
+    </div>
+@endsection
