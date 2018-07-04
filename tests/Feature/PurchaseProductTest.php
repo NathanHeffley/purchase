@@ -38,8 +38,10 @@ class PurchaseProductTest extends TestCase
 
         $this->assertEquals(2450, $paymentGateway->totalChargesForToken($testToken));
 
-        Mail::assertSent(ProductEmail::class, function ($mail) {
-            return $mail->hasTo('john@example.com');
+        Mail::assertSent(ProductEmail::class, function ($email) use ($product) {
+            $this->assertTrue($email->hasTo('john@example.com'));
+            $this->assertTrue($email->product->is($product));
+            return true;
         });
     }
 }
