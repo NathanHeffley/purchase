@@ -55,6 +55,16 @@ class FakePaymentGateway implements PaymentGateway
     }
 
     /**
+     * Returns all the charges this gateway has processed.
+     *
+     * @return Collection
+     */
+    public function totalCharges(): Collection
+    {
+        return $this->charges;
+    }
+
+    /**
      * Returns the total value of charges this gateway has faked for a specific token.
      *
      * @param string $token
