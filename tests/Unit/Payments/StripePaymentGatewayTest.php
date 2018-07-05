@@ -20,6 +20,6 @@ class StripePaymentGatewayTest extends TestCase
      */
     protected function paymentGateway(): PaymentGateway
     {
-        return new StripePaymentGateway();
+        return new StripePaymentGateway(config('services.stripe.secret'));
     }
 }

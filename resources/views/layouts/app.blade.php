@@ -12,6 +12,7 @@
         <script>
             window.App = {
                 csrfToken: '{{ csrf_token() }}',
+                stripePublicKey: '{{ config('services.stripe.key') }}',
             }
         </script>
     </head>
@@ -20,6 +21,7 @@
             @yield('body')
         </div>
 
+        @stack('scripts')
         <script src="/js/app.js"></script>
     </body>
 </html>
