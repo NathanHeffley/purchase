@@ -14,11 +14,20 @@
                 <span class="text-2xl block mt-1">${{ number_format($product->price / 100, 2) }}</span>
             </div>
             <div class="flex-grow">
-                <button class="btn">Purchase</button>
+                <purchase-button
+                    :id={{ $product->id }}
+                    name="{{ $product->name }}"
+                    :price={{ $product->price }}
+                ></purchase-button>
             </div>
         </div>
     </div>
     <div class="text-center text-grey-dark mt-8">
         <p>Powered by Purchase</p>
     </div>
+
 @endsection
+
+@push('scripts')
+    <script src="https://checkout.stripe.com/checkout.js"></script>
+@endpush
