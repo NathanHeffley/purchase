@@ -27,6 +27,7 @@ class PurchaseProductTest extends TestCase
         $this->paymentGateway = new FakePaymentGateway;
         $this->app->instance(PaymentGateway::class, $this->paymentGateway);
     }
+
     /** @test */
     public function customer_can_purchase_a_product()
     {

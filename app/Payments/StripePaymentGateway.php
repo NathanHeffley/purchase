@@ -2,11 +2,19 @@
 
 namespace App\Payments;
 
+use Stripe\Charge;
+use Stripe\Error\InvalidRequest;
 use Illuminate\Support\Collection;
 use App\Exceptions\PaymentFailedException;
+use Stripe\Token;
 
-class FakePaymentGateway implements PaymentGateway
+class StripePaymentGateway implements PaymentGateway
 {
+    /**
+     * @var string
+     */
+    protected $apiKey;
+
     /**
      * @var Collection
      */
@@ -17,8 +25,10 @@ class FakePaymentGateway implements PaymentGateway
      */
     protected $validTokens;
 
-    public function __construct()
+    public function __construct(string $apiKey)
     {
+        $this->apiKey = $apiKey;
+
         $this->charges = collect();
         $this->validTokens = collect();
     }
@@ -32,14 +42,20 @@ class FakePaymentGateway implements PaymentGateway
      */
     public function charge(int $amount, string $token): void
     {
-        if (!$this->validTokens->contains($token)) {
+        try {
+            Charge::create([
+                'amount' => $amount,
+                'source' => $token,
+                'currency' => 'usd',
+            ], ['api_key' => $this->apiKey]);
+
+            $this->charges->push([
+                'amount' => $amount,
+                'token' => $token,
+            ]);
+        } catch (InvalidRequest $e) {
             throw new PaymentFailedException;
         }
-
-        $this->charges->push([
-            'amount' => $amount,
-            'token' => $token,
-        ]);
     }
 
     /**
@@ -49,9 +65,14 @@ class FakePaymentGateway implements PaymentGateway
      */
     public function getValidTestToken(): string
     {
-        $token = 'test_token_' . str_random();
-        $this->validTokens->push($token);
-        return $token;
+        return Token::create([
+            'card' => [
+                'number' => 4242424242424242,
+                'exp_month' => 1,
+                'exp_year' => date('Y') + 1,
+                'cvc' => 123,
+            ]
+        ], ['api_key' => $this->apiKey])->id;
     }
 
     /**
@@ -62,18 +83,5 @@ class FakePaymentGateway implements PaymentGateway
     public function totalCharges(): Collection
     {
         return $this->charges;
-    }
-
-    /**
-     * Returns the total value of charges this gateway has faked for a specific token.
-     *
-     * @param string $token
-     * @return int
-     */
-    public function totalChargesForToken(string $token): int
-    {
-        return $this->charges->filter(function ($charge) use ($token) {
-            return $charge['token'] === $token;
-        })->sum('amount');
     }
 }

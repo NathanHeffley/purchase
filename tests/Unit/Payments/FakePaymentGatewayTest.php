@@ -2,11 +2,24 @@
 
 namespace Tests\Unit\Payments;
 
-use App\Payments\FakePaymentGateway;
 use Tests\TestCase;
+use App\Payments\PaymentGateway;
+use App\Payments\FakePaymentGateway;
 
 class FakePaymentGatewayTest extends TestCase
 {
+    use PaymentGatewayTests;
+
+    /**
+     * Returns the payment gateway to be used for tests.
+     *
+     * @return PaymentGateway
+     */
+    protected function paymentGateway(): PaymentGateway
+    {
+        return new FakePaymentGateway();
+    }
+
     /** @test */
     public function can_get_total_charges_for_a_specific_token()
     {
