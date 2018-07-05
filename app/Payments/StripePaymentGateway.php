@@ -11,6 +11,11 @@ use Stripe\Token;
 class StripePaymentGateway implements PaymentGateway
 {
     /**
+     * @var string
+     */
+    protected $apiKey;
+
+    /**
      * @var Collection
      */
     protected $charges;
@@ -20,8 +25,10 @@ class StripePaymentGateway implements PaymentGateway
      */
     protected $validTokens;
 
-    public function __construct()
+    public function __construct(string $apiKey)
     {
+        $this->apiKey = $apiKey;
+
         $this->charges = collect();
         $this->validTokens = collect();
     }
@@ -40,7 +47,7 @@ class StripePaymentGateway implements PaymentGateway
                 'amount' => $amount,
                 'source' => $token,
                 'currency' => 'usd',
-            ]);
+            ], ['api_key' => $this->apiKey]);
 
             $this->charges->push([
                 'amount' => $amount,
@@ -65,7 +72,7 @@ class StripePaymentGateway implements PaymentGateway
                 'exp_year' => date('Y') + 1,
                 'cvc' => 123,
             ]
-        ])->id;
+        ], ['api_key' => $this->apiKey])->id;
     }
 
     /**
